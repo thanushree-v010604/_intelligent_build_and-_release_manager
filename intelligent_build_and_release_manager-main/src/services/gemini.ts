@@ -1,42 +1,42 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 
 export async function generateProject(prompt: string, language: string) {
   const systemInstruction = `
-    You are an expert full-stack developer and UI/UX designer.
-    Your task is to generate production-ready code for a given prompt in the specified language.
-    Additionally, you must provide:
-    1. A detailed explanation of the code.
-    2. AI suggestions for performance and error fixing.
-    3. A build accuracy score (0-100).
-    4. A functional UI/UX design (HTML/Tailwind CSS) that represents the "Release" of this project.
-    
-    The UI/UX design should be a complete, self-contained HTML snippet using Tailwind CSS classes that can be rendered in a preview. 
-    It should be functional if possible (e.g., if it's a calculator, the HTML should include script tags for the logic).
-    
-    Return the response in JSON format.
-  `;
+You are an expert full-stack developer and UI/UX designer.
+Generate production-ready code + explanation + suggestions + accuracy + UI.
+Return response in JSON format.
+`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.1-pro-preview",
-    contents: `Generate a project for: "${prompt}" using ${language}.`,
-    config: {
-      systemInstruction,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          code: { type: Type.STRING, description: "The source code in the requested language." },
-          explanation: { type: Type.STRING, description: "Detailed explanation of the code." },
-          suggestions: { type: Type.STRING, description: "AI suggestions for improvements." },
-          accuracy: { type: Type.NUMBER, description: "Estimated build accuracy (0-100)." },
-          uiDesign: { type: Type.STRING, description: "Self-contained HTML/Tailwind/JS for the UI preview." }
-        },
-        required: ["code", "explanation", "suggestions", "accuracy", "uiDesign"]
-      }
-    }
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "llama3-8b-8192",
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: `Generate a project for: "${prompt}" using ${language}. Return JSON.` }
+      ]
+    })
   });
 
-  return JSON.parse(response.text);
+  const data = await response.json();
+
+  // Groq response format
+  const text = data.choices?.[0]?.message?.content;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error("Invalid JSON from AI:", text);
+    return {
+      code: "",
+      explanation: text,
+      suggestions: "",
+      accuracy: 0,
+      uiDesign: ""
+    };
+  }
 }
