@@ -296,13 +296,13 @@ const BuildPage = ({
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
-  // Simulated accuracy data for the graph
+  const finalAccuracy = Math.min(Math.max(project.accuracy, 50), 100);
   const accuracyData = [
-    { name: 'Syntax', value: project.accuracy - 15 },
-    { name: 'Logic', value: project.accuracy - 8 },
-    { name: 'Security', value: project.accuracy - 5 },
-    { name: 'Performance', value: project.accuracy - 2 },
-    { name: 'Final', value: project.accuracy },
+    { name: 'Syntax', value: Math.max(0, finalAccuracy - 15) },
+    { name: 'Logic', value: Math.max(0, finalAccuracy - 10) },
+    { name: 'Security', value: Math.max(0, finalAccuracy - 7) },
+    { name: 'Performance', value: Math.max(0, finalAccuracy - 4) },
+    { name: 'Final', value: finalAccuracy },
   ];
 
   return (
@@ -365,10 +365,10 @@ const BuildPage = ({
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/10 blur-[60px] rounded-full pointer-events-none" />
           <div className="flex items-center justify-between mb-8">
             <span className="text-[13px] uppercase tracking-[2px] gradient-text font-black">Build Accuracy</span>
-            <span className="text-4xl font-black gradient-text">{project.accuracy}%</span>
+            <span className="text-4xl font-black gradient-text">{finalAccuracy}%</span>
           </div>
           <div className="h-[180px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+           <ResponsiveContainer width="100%" height={300}>
               <BarChart data={accuracyData}>
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -413,7 +413,7 @@ const BuildPage = ({
                 <div 
                   key={i} 
                   className={`w-2.5 h-2.5 rounded-sm transition-all duration-500 ${
-                    i <= project.accuracy/20 
+                    i <= finalAccuracy/20 
                       ? 'bg-gradient-to-t from-brand-primary to-brand-light shadow-[0_0_10px_rgba(14,165,233,0.5)]' 
                       : 'bg-white/5'
                   }`} 
@@ -423,33 +423,17 @@ const BuildPage = ({
           </div>
         </div>
 
-        <div className="glass-panel flex flex-col">
-          <div className="px-6 py-4 border-b border-white/5">
-            <span className="text-[12px] uppercase tracking-[1px] text-brand-light font-semibold">AI Insights</span>
-          </div>
-          <div className="p-6 space-y-6">
-            <div className="border-l-4 border-brand-primary pl-4">
-              <h4 className="text-[11px] font-bold text-brand-primary uppercase tracking-wider mb-2">Explanation</h4>
-              <p className="text-[13px] text-brand-dim leading-relaxed line-clamp-4">{project.explanation}</p>
-            </div>
-            <div className="border-l-4 border-brand-primary pl-4">
-              <h4 className="text-[11px] font-bold text-brand-primary uppercase tracking-wider mb-2">Suggestions</h4>
-              <p className="text-[13px] text-brand-dim leading-relaxed line-clamp-4">{project.suggestions}</p>
-            </div>
-            <button 
-              onClick={onNext}
-              disabled={isBuilding || logs.length === 0}
-              className="w-full btn-primary py-3 text-[13px] flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              Release Preview <Layout className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <button 
+          onClick={onNext}
+          disabled={isBuilding || logs.length === 0}
+          className="w-full btn-primary py-3 text-[13px] flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          Release Preview <Layout className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
 };
-
 const ReleasePage = ({ 
   project, 
   onBack, 
@@ -461,7 +445,7 @@ const ReleasePage = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'preview' | 'explanation' | 'suggestions'>('preview');
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [saveName, setSaveName] = useState('');
+  const [saveName, setSaveName] = useState(project.prompt || 'Saved Project');
   const [saveCategory, setSaveCategory] = useState('General');
   const [device, setDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [previewKey, setPreviewKey] = useState(0);
@@ -471,10 +455,34 @@ const ReleasePage = ({
   const deviceWidths = {
     mobile: '375px',
     tablet: '768px',
-    desktop: '100%'
+    desktop: '100%',
   };
 
-  const refreshPreview = () => setPreviewKey(prev => prev + 1);
+  const refreshPreview = () => setPreviewKey((prev) => prev + 1);
+
+  const getPreviewHTML = (code: string) => {
+    if (!code) return '';
+    let cleaned = code.replace(/```(?:html)?/g, '').trim();
+    const fullMatch = cleaned.match(/<!doctype html[\s\S]*?<\/html>/i);
+    if (fullMatch) return fullMatch[0].trim();
+
+    const htmlMatch = cleaned.match(/<html[\s\S]*?<\/html>/i);
+    if (htmlMatch) return '<!DOCTYPE html>\n' + htmlMatch[0].trim();
+
+    const bodyMatch = cleaned.match(/<body[\s\S]*?<\/body>/i);
+    if (bodyMatch) {
+      return ['<!DOCTYPE html>', '<html>', bodyMatch[0].trim(), '</html>'].join('\n');
+    }
+
+    const tailIndex = cleaned.search(/\n\s*\{\s*"explanation"\s*:/i);
+    cleaned = tailIndex !== -1 ? cleaned.slice(0, tailIndex).trim() : cleaned;
+    return ['<!DOCTYPE html>', '<html>', '<head><meta charset="UTF-8" /></head>', '<body>', cleaned, '</body>', '</html>'].join('\n');
+  };
+
+  const saveProject = () => {
+    onSave(saveName || project.prompt || 'Saved Project', saveCategory);
+    setShowSaveModal(false);
+  };
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-6">
@@ -483,7 +491,8 @@ const ReleasePage = ({
           <ArrowLeft className="w-4 h-4" /> Back to Build
         </button>
         <div className="flex items-center gap-3">
-          <button 
+          <button
+            type="button"
             onClick={() => setShowSaveModal(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[11px] font-bold uppercase tracking-wider text-brand-dim"
           >
@@ -495,77 +504,20 @@ const ReleasePage = ({
         </div>
       </div>
 
-      {/* Save Modal */}
-      <AnimatePresence>
-        {showSaveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="glass-panel p-8 max-w-md w-full"
-            >
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Save className="w-5 h-5 text-brand-light" /> Save to Library
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Project Name</label>
-                  <input 
-                    type="text" 
-                    value={saveName}
-                    onChange={(e) => setSaveName(e.target.value)}
-                    placeholder="Enter project name..."
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Category</label>
-                  <select 
-                    value={saveCategory}
-                    onChange={(e) => setSaveCategory(e.target.value)}
-                    className="input-field appearance-none"
-                  >
-                    {categories.map(c => <option key={c} value={c} className="bg-brand-deep">{c}</option>)}
-                  </select>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button 
-                    onClick={() => setShowSaveModal(false)}
-                    className="flex-1 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-sm font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    disabled={!saveName}
-                    onClick={() => {
-                      onSave(saveName, saveCategory);
-                      setShowSaveModal(false);
-                    }}
-                    className="flex-1 btn-primary py-2 text-sm disabled:opacity-50"
-                  >
-                    Confirm Save
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 space-y-2">
           {[
             { id: 'preview', label: 'Live Preview', icon: Layout },
-            { id: 'explanation', label: 'Code Explanation', icon: Terminal },
+            { id: 'explanation', label: 'Code Explanation', icon: Code2 },
             { id: 'suggestions', label: 'AI Suggestions', icon: Sparkles },
           ].map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id as any)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                activeTab === tab.id 
-                  ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' 
+                activeTab === tab.id
+                  ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20'
                   : 'text-white/60 hover:bg-white/5'
               }`}
             >
@@ -578,232 +530,140 @@ const ReleasePage = ({
         <div className="lg:col-span-3">
           <AnimatePresence mode="wait">
             {activeTab === 'preview' && (
-              <motion.div
-                key="preview"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="flex flex-col h-[700px]"
-              >
-                {/* Preview Toolbar */}
-                <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-b from-brand-dark/80 to-brand-dark/40 backdrop-blur-2xl border border-white/10 rounded-t-3xl relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-transparent to-brand-light/5 pointer-events-none" />
-                  <div className="flex items-center gap-4 relative z-10">
-                    <div className="flex gap-2">
-                      <div className="w-3.5 h-3.5 rounded-full bg-red-500/40 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]" />
-                      <div className="w-3.5 h-3.5 rounded-full bg-yellow-500/40 border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.2)]" />
-                      <div className="w-3.5 h-3.5 rounded-full bg-green-500/40 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.2)]" />
-                    </div>
-                    <div className="ml-6 px-4 py-1.5 rounded-xl bg-black/40 border border-white/10 text-[11px] text-brand-light/60 font-mono shadow-inner">
-                      https://neural-pipeline.io/release/preview
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6 relative z-10">
-                    <div className="flex items-center bg-black/30 rounded-xl p-1 border border-white/5 shadow-inner">
-                      {[
-                        { id: 'mobile', icon: Smartphone },
-                        { id: 'tablet', icon: Tablet },
-                        { id: 'desktop', icon: Monitor },
-                      ].map((d) => (
-                        <button
-                          key={d.id}
-                          onClick={() => setDevice(d.id as any)}
-                          className={`p-2 rounded-lg transition-all duration-300 ${
-                            device === d.id 
-                              ? 'bg-gradient-to-br from-brand-primary to-brand-light text-white shadow-lg shadow-brand-primary/30 scale-110' 
-                              : 'text-white/30 hover:text-white hover:bg-white/5'
-                          }`}
-                        >
-                          <d.icon className="w-4 h-4" />
-                        </button>
-                      ))}
-                    </div>
-                    <button 
-                      onClick={refreshPreview}
-                      className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all duration-300 group"
-                      title="Refresh Preview"
-                    >
-                      <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Iframe Container */}
-                <div className="flex-1 glass-panel !rounded-t-none border-t-0 p-0 overflow-hidden bg-brand-deep/50 flex justify-center items-start pt-8 pb-8 px-4 overflow-y-auto">
+              <motion.div key="preview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col h-[700px]">
+                <div className="flex-1 glass-panel p-0 overflow-hidden bg-gradient-to-br from-violet-700/20 via-indigo-700/15 to-cyan-600/20 border border-white/10 shadow-2xl flex justify-center items-start pt-8 pb-8 px-4 overflow-y-auto">
                   <motion.div
                     animate={{ width: deviceWidths[device] }}
                     transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                    className="bg-white rounded-xl shadow-2xl shadow-black/50 overflow-hidden h-full min-h-[500px]"
+                    className="bg-white rounded-xl shadow-2xl overflow-hidden h-full min-h-[500px]"
                   >
                     <iframe
                       key={previewKey}
                       title="Release Preview"
-                      srcDoc={`
-                        <!DOCTYPE html>
-                        <html>
-                          <head>
-                            <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-                            <style>
-                              body { 
-                                margin: 0; 
-                                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                                background: #f8fafc;
-                              }
-                              /* Hide scrollbar for Chrome, Safari and Opera */
-                              body::-webkit-scrollbar {
-                                display: none;
-                              }
-                              /* Hide scrollbar for IE, Edge and Firefox */
-                              body {
-                                -ms-overflow-style: none;  /* IE and Edge */
-                                scrollbar-width: none;  /* Firefox */
-                              }
-                            </style>
-                          </head>
-                          <body>
-                            <div id="preview-root">
-                              ${project.uiDesign}
-                            </div>
-                          </body>
-                        </html>
-                      `}
+                      srcDoc={getPreviewHTML(project.code)}
                       className="w-full h-full border-none"
+                      sandbox="allow-scripts allow-same-origin"
                     />
                   </motion.div>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex gap-2">
+                    {(['mobile', 'tablet', 'desktop'] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setDevice(mode)}
+                        className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                          device === mode ? 'bg-brand-primary text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'
+                        }`}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={refreshPreview}
+                    className="btn-primary rounded-2xl px-5 py-3 text-sm font-bold uppercase tracking-[0.15em]"
+                  >
+                    Refresh Preview
+                  </button>
                 </div>
               </motion.div>
             )}
 
             {activeTab === 'explanation' && (
-              <motion.div
-                key="explanation"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="glass-panel p-8 h-[700px] overflow-y-auto"
-              >
-                <div className="border-b border-white/5 pb-4 mb-6">
-                  <span className="text-[12px] uppercase tracking-[1px] text-brand-light font-semibold">Logic Breakdown</span>
-                </div>
-                <div className="prose prose-invert max-w-none">
-                  <p className="text-brand-dim leading-relaxed whitespace-pre-wrap text-[14px]">
-                    {project.explanation}
-                  </p>
-                </div>
+              <motion.div key="explanation" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass-panel p-8 h-[700px] overflow-y-auto">
+                <h3 className="text-lg font-bold mb-4">Code Explanation</h3>
+                <p className="whitespace-pre-wrap text-brand-light/90">{explanationText}</p>
               </motion.div>
             )}
 
             {activeTab === 'suggestions' && (
-              <motion.div
-                key="suggestions"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="glass-panel p-8 h-[700px] overflow-y-auto"
-              >
-                <div className="border-b border-white/5 pb-4 mb-6">
-                  <span className="text-[12px] uppercase tracking-[1px] text-brand-light font-semibold">Optimization Roadmap</span>
-                </div>
-                <div className="space-y-6">
-                  {project.suggestions.split('\n').filter(s => s.trim()).map((s, i) => (
-                    <div key={i} className="border-l-2 border-brand-light pl-4">
-                      <strong className="text-brand-light text-[11px] uppercase tracking-wider block mb-1">Optimization {i + 1}</strong>
-                      <p className="text-brand-dim text-[13px] leading-relaxed">{s}</p>
-                    </div>
-                  ))}
-                </div>
+              <motion.div key="suggestions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="glass-panel p-8 h-[700px] overflow-y-auto">
+                <h3 className="text-lg font-bold mb-4">AI Suggestions</h3>
+                {suggestionLines.length > 0 ? (
+                  <div className="space-y-4">
+                    {suggestionLines.map((s, i) => (
+                      <div key={i} className="border-l-2 border-brand-light pl-4">
+                        <strong className="text-brand-light text-[11px] uppercase tracking-wider block mb-1">Suggestion {i + 1}</strong>
+                        <p className="text-brand-dim text-[13px] leading-relaxed">{s}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-brand-dim text-[14px] leading-relaxed">No AI suggestions are available yet. Try regenerating the prompt with more detail.</p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
-    </div>
-  );
-};
 
-const LibraryPage = ({ 
-  projects, 
-  onSelect, 
-  onDelete 
-}: { 
-  projects: GeneratedProject[]; 
-  onSelect: (p: GeneratedProject) => void; 
-  onDelete: (id: string) => void;
-}) => {
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-6xl mx-auto py-12 px-6"
-    >
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h2 className="text-4xl font-black mb-3 gradient-text uppercase tracking-tighter">Project Library</h2>
-          <p className="text-brand-dim font-medium">Your saved intelligent builds and neural releases</p>
-        </div>
-        <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-primary/10 to-brand-light/5 border border-brand-primary/20 shadow-xl">
-          <FolderHeart className="w-6 h-6 text-brand-primary" />
-          <span className="font-black text-brand-primary uppercase tracking-widest text-sm">{projects.length} Projects</span>
-        </div>
-      </div>
-
-      {projects.length === 0 ? (
-        <div className="glass-panel p-24 text-center relative overflow-hidden">
-          <div className="absolute inset-0 mesh-bg opacity-30 pointer-events-none" />
-          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-white/5 relative z-10">
-            <Plus className="w-10 h-10 text-white/10" />
-          </div>
-          <h3 className="text-2xl font-black mb-3 text-brand-dim uppercase tracking-tighter relative z-10">No projects saved yet</h3>
-          <p className="text-brand-dim/60 mb-10 text-lg relative z-10">Generate and release a project to save it here</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((p) => (
-            <motion.div 
-              key={p.id}
-              layoutId={p.id}
-              className="glass-panel flex flex-col hover:border-brand-primary/50 transition-all duration-500 group overflow-hidden hover:-translate-y-2"
+      {showSaveModal && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
+          <div className="w-full max-w-lg glass-panel p-6 relative">
+            <button
+              type="button"
+              onClick={() => setShowSaveModal(false)}
+              className="absolute top-4 right-4 text-white/60 hover:text-white"
             >
-              <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/5">
-                <span className="text-[11px] font-black text-brand-primary uppercase tracking-[0.2em]">
-                  {p.category || 'General'}
-                </span>
-                <button 
-                  onClick={() => onDelete(p.id)}
-                  className="p-2 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300"
+              Close
+            </button>
+            <h3 className="text-xl font-bold mb-4">Save Project</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-white/80 mb-2">Project Name</label>
+                <input
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-white outline-none focus:border-brand-primary"
+                  placeholder="Enter a name for this release"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-white/80 mb-2">Category</label>
+                <select
+                  value={saveCategory}
+                  onChange={(e) => setSaveCategory(e.target.value)}
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-white outline-none focus:border-brand-primary"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {categories.map((category) => (
+                    <option key={category} value={category} className="bg-brand-deep text-white">
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSaveModal(false)}
+                  className="px-5 py-3 rounded-2xl bg-white/5 text-white/80 hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveProject}
+                  className="px-5 py-3 rounded-2xl bg-brand-primary text-white font-bold"
+                >
+                  Save
                 </button>
               </div>
-              <div className="p-8 flex-1 relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 blur-[40px] rounded-full pointer-events-none" />
-                <h3 className="text-2xl font-black mb-4 truncate group-hover:gradient-text transition-all duration-500 uppercase tracking-tighter">{p.name || 'Untitled Project'}</h3>
-                <p className="text-sm text-brand-dim line-clamp-2 mb-8 h-12 leading-relaxed font-medium group-hover:text-white/70 transition-colors">{p.prompt}</p>
-                
-                <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                  <div className="flex items-center gap-3 text-[11px] text-brand-dim font-black uppercase tracking-widest">
-                    <div className="w-2 h-2 rounded-full bg-brand-success shadow-[0_0_10px_rgba(34,197,94,0.5)]" /> {p.language}
-                  </div>
-                  <button 
-                    onClick={() => onSelect(p)}
-                    className="flex items-center gap-2 text-[11px] font-black text-brand-light hover:text-white transition-all uppercase tracking-[0.2em] group/btn"
-                  >
-                    OPEN BUILD <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+            </div>
+          </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
 // --- Main App ---
 
 export default function App() {
-  const [view, setView] = useState<'splash' | 'home' | 'generator' | 'build' | 'release' | 'library'>('splash');
+  const [view, setView] = useState<'splash' | 'home' | 'generator' | 'build' | 'release'>('splash');
   const [project, setProject] = useState<GeneratedProject | null>(null);
   const [savedProjects, setSavedProjects] = useState<GeneratedProject[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -812,7 +672,6 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Load saved projects from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('intelligent_build_projects');
     if (saved) {
@@ -830,15 +689,14 @@ export default function App() {
     }
   }, []);
 
-  // Save projects to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('intelligent_build_projects', JSON.stringify(savedProjects));
   }, [savedProjects]);
 
   const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
+    const nextMode = !isDarkMode;
+    setIsDarkMode(nextMode);
+    if (nextMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('intelligent_build_theme', 'dark');
     } else {
@@ -848,227 +706,186 @@ export default function App() {
   };
 
   const addLog = (message: string, type: BuildLog['type'] = 'info') => {
-    setLogs(prev => [...prev, {
-      timestamp: new Date().toLocaleTimeString(),
-      message,
-      type
-    }]);
+    setLogs((prev) => [
+      ...prev,
+      {
+        timestamp: new Date().toLocaleTimeString(),
+        message,
+        type,
+      },
+    ]);
+  };
+
+  const cleanHTML = (input: string) => {
+    if (!input) return '';
+
+    const fallbackHead = `<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n<style>\n  body {\n    margin: 0;\n    min-height: 100vh;\n    font-family: system-ui, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n    background: radial-gradient(circle at top left, rgba(96,165,250,0.18), transparent 40%), linear-gradient(180deg, #020617 0%, #0f172a 100%);\n    color: #f8fafc;\n  }\n  html, body { min-height: 100%; }\n  button, input, textarea, select { font: inherit; }\n</style>\n</head>`;
+
+    let content = input.replace(/```(?:html)?/g, '').trim();
+    const fullMatch = content.match(/<!doctype html[\s\S]*?<\/html>/i);
+    if (fullMatch) {
+      let result = fullMatch[0].trim();
+      if (!/<head[\s\S]*?>/i.test(result)) {
+        result = result.replace(/<html([^>]*)>/i, `<html$1>${fallbackHead}`);
+      }
+      return result;
+    }
+
+    const htmlMatch = content.match(/<html[\s\S]*?<\/html>/i);
+    if (htmlMatch) {
+      let result = '<!DOCTYPE html>\n' + htmlMatch[0].trim();
+      if (!/<head[\s\S]*?>/i.test(result)) {
+        result = result.replace(/<html([^>]*)>/i, `<html$1>${fallbackHead}`);
+      }
+      return result;
+    }
+
+    const bodyMatch = content.match(/<body[\s\S]*?<\/body>/i);
+    if (bodyMatch) {
+      return ['<!DOCTYPE html>', '<html>', fallbackHead, bodyMatch[0].trim(), '</html>'].join('\n');
+    }
+
+    return ['<!DOCTYPE html>', '<html>', fallbackHead, '<body>', content, '</body>', '</html>'].join('\n');
   };
 
   const handleGenerate = async (prompt: string, lang: Language) => {
     setIsGenerating(true);
     setError(null);
+
     try {
       const result = await generateProject(prompt, lang);
-      setProject({ 
-        ...result, 
-        id: crypto.randomUUID(), 
-        prompt, 
+      setProject({
+        id: crypto.randomUUID(),
+        prompt,
         language: lang,
-        createdAt: Date.now()
+        code: cleanHTML(result.code),
+        explanation: result.explanation || '',
+        suggestions: result.suggestions || '',
+        accuracy: typeof result.accuracy === 'number' ? result.accuracy : 90,
+        uiDesign: result.code || '',
+        createdAt: Date.now(),
       });
       setView('build');
-      setLogs([]); // Reset logs for new build
+      setLogs([]);
     } catch (err: any) {
       console.error(err);
-      let userMessage = "An unexpected error occurred while architecting your project.";
-      
-      if (err.message?.includes('API_KEY_INVALID') || err.message?.includes('API key not valid')) {
-        userMessage = "Your Gemini API key appears to be invalid. Please check your AI Studio secrets configuration.";
+      let userMessage = 'An unexpected error occurred while architecting your project.';
+      if (err?.message?.includes('API_KEY_INVALID') || err?.message?.includes('API key not valid')) {
+        userMessage = 'Your Gemini API key appears to be invalid. Please check your AI Studio secrets configuration.';
       } else if (!navigator.onLine) {
-        userMessage = "Network connection lost. Please check your internet and try again.";
-      } else if (err.message?.includes('fetch')) {
-        userMessage = "Unable to reach the AI engine. This might be a temporary network issue or service interruption.";
-      } else if (err.message?.includes('quota')) {
-        userMessage = "AI generation quota exceeded. Please wait a moment before trying again.";
+        userMessage = 'Network connection lost. Please check your internet and try again.';
+      } else if (err?.message?.includes('fetch')) {
+        userMessage = 'Unable to reach the AI engine. This might be a temporary network issue or service interruption.';
+      } else if (err?.message?.includes('quota')) {
+        userMessage = 'AI generation quota exceeded. Please wait a moment before trying again.';
       }
-      
       setError(userMessage);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleSave = (name: string, category: string) => {
-    if (!project) return;
-    const updatedProject = { ...project, name, category };
-    setProject(updatedProject);
-    setSavedProjects(prev => {
-      const exists = prev.find(p => p.id === updatedProject.id);
-      if (exists) {
-        return prev.map(p => p.id === updatedProject.id ? updatedProject : p);
-      }
-      return [updatedProject, ...prev];
-    });
-    alert('Project saved to library!');
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this project?')) {
-      setSavedProjects(prev => prev.filter(p => p.id !== id));
-    }
-  };
-
-  const handleSelect = (p: GeneratedProject) => {
-    setProject(p);
-    setView('release');
-  };
-
-  const runBuild = async () => {
+  const runBuild = () => {
     if (!project) return;
     setIsBuilding(true);
     setLogs([]);
-    
-    const steps = [
-      { msg: 'Initializing build environment...', type: 'info' as const, delay: 800 },
-      { msg: `Analyzing ${project.language} source code...`, type: 'info' as const, delay: 1200 },
-      { msg: 'Resolving dependencies...', type: 'info' as const, delay: 1000 },
-      { msg: 'Compiling modules...', type: 'info' as const, delay: 1500 },
-      { msg: 'Running static analysis...', type: 'warning' as const, delay: 800 },
-      { msg: 'Validation check: Syntax OK', type: 'success' as const, delay: 500 },
-      { msg: 'Validation check: Logic consistency OK', type: 'success' as const, delay: 500 },
-      { msg: `Build completed with ${project.accuracy}% accuracy`, type: 'success' as const, delay: 1000 },
-      { msg: 'Preparing release artifacts...', type: 'info' as const, delay: 800 },
-    ];
-
-    for (const step of steps) {
-      await new Promise(r => setTimeout(r, step.delay));
-      addLog(step.msg, step.type);
-    }
-    
-    setIsBuilding(false);
+    addLog('Starting build pipeline...', 'info');
+    setTimeout(() => addLog('Analyzing source code...', 'info'), 800);
+    setTimeout(() => addLog('Checking syntax and dependencies...', 'warning'), 1500);
+    setTimeout(() => addLog('Build completed successfully.', 'success'), 2600);
+    setTimeout(() => setIsBuilding(false), 2800);
   };
 
-  return (
-    <div className="min-h-screen mesh-bg text-white selection:bg-brand-primary selection:text-white">
-      <AnimatePresence mode="wait">
-        {view === 'splash' && (
-          <SplashScreen onComplete={() => setView('home')} />
-        )}
+  const handleSave = (name: string, category: string) => {
+    if (!project) return;
+    setSavedProjects((prev) => [
+      { ...project, name, category, createdAt: Date.now() },
+      ...prev,
+    ]);
+    setError('Project saved successfully.');
+    setTimeout(() => setError(null), 2500);
+  };
 
-        {view !== 'splash' && (
-          <motion.div
-            key="main"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="relative"
-          >
-            {/* Background Decoration */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-              <motion.div 
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ duration: 20, repeat: Infinity }}
-                className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-primary/10 blur-[150px] rounded-full" 
-              />
-              <motion.div 
-                animate={{ 
-                  scale: [1, 1.3, 1],
-                  rotate: [0, -5, 5, 0]
-                }}
-                transition={{ duration: 25, repeat: Infinity }}
-                className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-light/5 blur-[150px] rounded-full" 
-              />
+  const navItems = [
+    { id: 'home', label: 'Home' },
+    { id: 'generator', label: 'Generator' },
+    { id: 'build', label: 'Build' },
+    { id: 'release', label: 'Release' },
+  ] as const;
+
+  return (
+    <AnimatePresence mode="wait">
+      {view === 'splash' ? (
+        <SplashScreen onComplete={() => setView('home')} />
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="min-h-screen"
+        >
+          <header className="mx-auto max-w-6xl px-6 py-6 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter text-white">Intelligent Build Manager</h1>
+              <p className="text-sm text-brand-dim mt-2">Switch between preview, explanation and suggestions cleanly.</p>
             </div>
 
-            {/* Header */}
-            <header className="sticky top-0 z-40 bg-brand-deep/60 backdrop-blur-2xl border-b border-white/5">
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-transparent to-brand-light/5 pointer-events-none" />
-              <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setView('home')}>
-                  <div className="w-12 h-12 bg-gradient-to-br from-brand-primary to-brand-light rounded-2xl flex items-center justify-center shadow-xl shadow-brand-primary/20 group-hover:rotate-12 transition-transform duration-500">
-                    <Rocket className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <h1 className="text-2xl font-black tracking-tighter text-white leading-none uppercase">
-                      INTELLIGENT <span className="text-brand-primary">BUILD</span>
-                    </h1>
-                    <span className="text-[9px] text-brand-dim font-black uppercase tracking-[0.4em] mt-1.5">Neural DevOps Pipeline</span>
-                  </div>
-                </div>
-                <nav className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-brand-dim">
-                  {['generator', 'build', 'release', 'library'].map((v) => (
-                    <button 
-                      key={v}
-                      onClick={() => (v === 'generator' || v === 'library' || project) && setView(v as any)}
-                      disabled={(v === 'build' || v === 'release') && !project}
-                      className={`relative py-2 transition-all duration-300 ${view === v ? 'text-white scale-110' : 'hover:text-white hover:scale-105'} disabled:opacity-20`}
-                    >
-                      {v}
-                      {view === v && (
-                        <motion.div 
-                          layoutId="nav-underline" 
-                          className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary to-brand-light rounded-full shadow-[0_0_10px_rgba(14,165,233,0.8)]" 
-                        />
-                      )}
-                    </button>
-                  ))}
-                </nav>
-                <div className="flex items-center gap-6">
-                  <button 
-                    onClick={toggleDarkMode}
-                    className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-brand-dim hover:text-white group"
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <nav className="flex flex-wrap gap-2">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setView(item.id)}
+                    disabled={['build', 'release'].includes(item.id) && !project}
+                    className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                      view === item.id ? 'bg-brand-primary text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'
+                    } ${['build', 'release'].includes(item.id) && !project ? 'opacity-40 cursor-not-allowed' : ''}`}
                   >
-                    {isDarkMode ? <Sun className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-5 h-5 group-hover:-rotate-12 transition-transform duration-500" />}
+                    {item.label}
                   </button>
-                  <div className="hidden sm:flex items-center gap-3 px-5 py-2.5 bg-gradient-to-r from-brand-primary/10 to-brand-light/5 border border-brand-primary/20 rounded-2xl text-brand-primary font-black text-[9px] uppercase tracking-[0.2em] shadow-inner">
-                    <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse shadow-[0_0_10px_rgba(14,165,233,0.8)]" />
-                    System Active
-                  </div>
-                </div>
-              </div>
-            </header>
+                ))}
+              </nav>
 
-            {/* Content */}
-            <main className="relative z-10 pt-8 pb-20">
-              {error ? (
-                <div className="py-20">
-                  <ErrorDisplay message={error} onRetry={() => setError(null)} />
-                </div>
-              ) : (
-                <>
-                  {view === 'home' && <HomePage onStart={() => setView('generator')} />}
-                  {view === 'generator' && (
-                    isGenerating ? (
-                      <div className="flex flex-col items-center justify-center py-40">
-                        <Loader2 className="w-12 h-12 text-brand-light animate-spin mb-4" />
-                        <p className="text-white/60 animate-pulse">AI is architecting your project...</p>
-                      </div>
-                    ) : (
-                      <GeneratorPage onGenerate={handleGenerate} />
-                    )
-                  )}
-                  {view === 'build' && project && (
-                    <BuildPage 
-                      project={project} 
-                      logs={logs} 
-                      isBuilding={isBuilding} 
-                      onRunBuild={runBuild}
-                      onNext={() => setView('release')}
-                    />
-                  )}
-                  {view === 'release' && project && (
-                    <ReleasePage 
-                      project={project} 
-                      onBack={() => setView('build')} 
-                      onSave={handleSave}
-                    />
-                  )}
-                  {view === 'library' && (
-                    <LibraryPage 
-                      projects={savedProjects} 
-                      onSelect={handleSelect}
-                      onDelete={handleDelete}
-                    />
-                  )}
-                </>
-              )}
-            </main>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+              <button
+                type="button"
+                onClick={toggleDarkMode}
+                className="rounded-2xl bg-white/5 px-4 py-2 text-sm font-semibold text-brand-dim hover:bg-white/10"
+              >
+                {isDarkMode ? <Sun className="inline w-4 h-4" /> : <Moon className="inline w-4 h-4" />} {isDarkMode ? 'Light' : 'Dark'}
+              </button>
+            </div>
+          </header>
+
+          <main className="relative z-10 mx-auto max-w-6xl px-6 pb-20">
+            {error ? (
+              <div className="py-10">
+                <ErrorDisplay message={error} onRetry={() => setError(null)} />
+              </div>
+            ) : (
+              <>
+                {view === 'home' && <HomePage onStart={() => setView('generator')} />}
+                {view === 'generator' && (
+                  isGenerating ? (
+                    <div className="flex flex-col items-center justify-center py-40">
+                      <Loader2 className="w-12 h-12 text-brand-light animate-spin mb-4" />
+                      <p className="text-white/60 animate-pulse">AI is architecting your project...</p>
+                    </div>
+                  ) : (
+                    <GeneratorPage onGenerate={handleGenerate} />
+                  )
+                )}
+                {view === 'build' && project && (
+                  <BuildPage project={project} logs={logs} isBuilding={isBuilding} onRunBuild={runBuild} onNext={() => setView('release')} />
+                )}
+                {view === 'release' && project && (
+                  <ReleasePage project={project} onBack={() => setView('build')} onSave={handleSave} />
+                )}
+              </>
+            )}
+          </main>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

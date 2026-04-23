@@ -297,12 +297,13 @@ const BuildPage = ({
   }, [logs]);
 
   // Simulated accuracy data for the graph
+  const finalAccuracy = Math.min(Math.max(project.accuracy, 50), 100);
   const accuracyData = [
-    { name: 'Syntax', value: project.accuracy - 15 },
-    { name: 'Logic', value: project.accuracy - 8 },
-    { name: 'Security', value: project.accuracy - 5 },
-    { name: 'Performance', value: project.accuracy - 2 },
-    { name: 'Final', value: project.accuracy },
+    { name: 'Syntax', value: Math.max(0, finalAccuracy - 15) },
+    { name: 'Logic', value: Math.max(0, finalAccuracy - 10) },
+    { name: 'Security', value: Math.max(0, finalAccuracy - 7) },
+    { name: 'Performance', value: Math.max(0, finalAccuracy - 4) },
+    { name: 'Final', value: finalAccuracy },
   ];
 
   return (
@@ -365,10 +366,10 @@ const BuildPage = ({
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/10 blur-[60px] rounded-full pointer-events-none" />
           <div className="flex items-center justify-between mb-8">
             <span className="text-[13px] uppercase tracking-[2px] gradient-text font-black">Build Accuracy</span>
-            <span className="text-4xl font-black gradient-text">{project.accuracy}%</span>
+            <span className="text-4xl font-black gradient-text">{finalAccuracy}%</span>
           </div>
           <div className="h-[180px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+           <ResponsiveContainer width="100%" height={300}>
               <BarChart data={accuracyData}>
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -459,6 +460,44 @@ const ReleasePage = ({
   onBack: () => void;
   onSave: (name: string, category: string) => void;
 }) => {
+   function cleanHTML(html: string) {
+    if (!html) return "";
+
+    const fallbackHead = `<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n<style>\n  body {\n    margin: 0;\n    min-height: 100vh;\n    font-family: system-ui, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n    background: radial-gradient(circle at top left, rgba(96,165,250,0.18), transparent 40%), linear-gradient(180deg, #020617 0%, #0f172a 100%);\n    color: #f8fafc;\n  }\n  html, body, #root { height: 100%; }\n  button, input, textarea, select { font: inherit; }\n</style>\n</head>`;
+
+    let content = html.replace(/```(?:html)?/g, '').trim();
+    const fullMatch = content.match(/<!doctype html[\s\S]*?<\/html>/i);
+    if (fullMatch) {
+      let result = fullMatch[0].trim();
+      if (!/<head[\s\S]*?>/i.test(result)) {
+        result = result.replace(/<html([^>]*)>/i, `<html$1>${fallbackHead}`);
+      }
+      return result;
+    }
+
+    const htmlMatch = content.match(/<html[\s\S]*?<\/html>/i);
+    if (htmlMatch) {
+      let result = '<!DOCTYPE html>\n' + htmlMatch[0].trim();
+      if (!/<head[\s\S]*?>/i.test(result)) {
+        result = result.replace(/<html([^>]*)>/i, `<html$1>${fallbackHead}`);
+      }
+      return result;
+    }
+
+    const bodyMatch = content.match(/<body[\s\S]*?<\/body>/i);
+    if (bodyMatch) {
+      return ['<!DOCTYPE html>', '<html>', fallbackHead, bodyMatch[0].trim(), '</html>'].join('\n');
+    }
+
+    const tailIndex = content.search(/\n\s*\{\s*"explanation"\s*:/i);
+    if (tailIndex !== -1) {
+      content = content.slice(0, tailIndex).trim();
+    }
+
+    return ['<!DOCTYPE html>', '<html>', fallbackHead, '<body>', content, '</body>', '</html>'].join('\n');
+  }
+
+  // 👇 your existing states continue
   const [activeTab, setActiveTab] = useState<'preview' | 'explanation' | 'suggestions'>('preview');
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveName, setSaveName] = useState('');
@@ -475,6 +514,8 @@ const ReleasePage = ({
   };
 
   const refreshPreview = () => setPreviewKey(prev => prev + 1);
+  const explanationText = project.explanation?.trim() || 'No code explanation is available yet. Please regenerate the project.';
+  const suggestionLines = project.suggestions?.split('\n').map((s) => s.trim()).filter(Boolean) || [];
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-6">
@@ -628,50 +669,26 @@ const ReleasePage = ({
                   </div>
                 </div>
 
+               
                 {/* Iframe Container */}
-                <div className="flex-1 glass-panel !rounded-t-none border-t-0 p-0 overflow-hidden bg-brand-deep/50 flex justify-center items-start pt-8 pb-8 px-4 overflow-y-auto">
+                <div className="flex-1 glass-panel !rounded-t-none border-t-0 p-0 overflow-hidden bg-gradient-to-br from-violet-700/20 via-indigo-700/15 to-cyan-600/20 border border-white/10 shadow-[0_40px_120px_rgba(56,189,248,0.12)] flex justify-center items-start pt-8 pb-8 px-4 overflow-y-auto">
                   <motion.div
                     animate={{ width: deviceWidths[device] }}
                     transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                    className="bg-white rounded-xl shadow-2xl shadow-black/50 overflow-hidden h-full min-h-[500px]"
+                    className="bg-white rounded-[32px] shadow-2xl shadow-black/40 overflow-hidden h-full min-h-[500px] border border-white/10"
                   >
-                    <iframe
-                      key={previewKey}
-                      title="Release Preview"
-                      srcDoc={`
-                        <!DOCTYPE html>
-                        <html>
-                          <head>
-                            <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-                            <style>
-                              body { 
-                                margin: 0; 
-                                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                                background: #f8fafc;
-                              }
-                              /* Hide scrollbar for Chrome, Safari and Opera */
-                              body::-webkit-scrollbar {
-                                display: none;
-                              }
-                              /* Hide scrollbar for IE, Edge and Firefox */
-                              body {
-                                -ms-overflow-style: none;  /* IE and Edge */
-                                scrollbar-width: none;  /* Firefox */
-                              }
-                            </style>
-                          </head>
-                          <body>
-                            <div id="preview-root">
-                              ${project.uiDesign}
-                            </div>
-                          </body>
-                        </html>
-                      `}
-                      className="w-full h-full border-none"
-                    />
+                    <div className="w-full h-full">
+                      <iframe
+                        key={previewKey}
+                        title="Release Preview"
+                        srcDoc={cleanHTML(project.code)}
+                        sandbox="allow-scripts allow-same-origin"
+                        className="w-full h-full border-none"
+                      />
+                    </div>
                   </motion.div>
                 </div>
-              </motion.div>
+                </motion.div>
             )}
 
             {activeTab === 'explanation' && (
@@ -687,7 +704,7 @@ const ReleasePage = ({
                 </div>
                 <div className="prose prose-invert max-w-none">
                   <p className="text-brand-dim leading-relaxed whitespace-pre-wrap text-[14px]">
-                    {project.explanation}
+                    {explanationText}
                   </p>
                 </div>
               </motion.div>
@@ -705,12 +722,16 @@ const ReleasePage = ({
                   <span className="text-[12px] uppercase tracking-[1px] text-brand-light font-semibold">Optimization Roadmap</span>
                 </div>
                 <div className="space-y-6">
-                  {project.suggestions.split('\n').filter(s => s.trim()).map((s, i) => (
-                    <div key={i} className="border-l-2 border-brand-light pl-4">
-                      <strong className="text-brand-light text-[11px] uppercase tracking-wider block mb-1">Optimization {i + 1}</strong>
-                      <p className="text-brand-dim text-[13px] leading-relaxed">{s}</p>
-                    </div>
-                  ))}
+                  {suggestionLines.length > 0 ? (
+                    suggestionLines.map((s, i) => (
+                      <div key={i} className="border-l-2 border-brand-light pl-4">
+                        <strong className="text-brand-light text-[11px] uppercase tracking-wider block mb-1">Optimization {i + 1}</strong>
+                        <p className="text-brand-dim text-[13px] leading-relaxed">{s}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-brand-dim text-[14px] leading-relaxed">No AI suggestions are available yet. Try generating again or ask for a more specific prompt.</div>
+                  )}
                 </div>
               </motion.div>
             )}
