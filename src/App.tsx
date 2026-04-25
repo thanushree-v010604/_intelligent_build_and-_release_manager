@@ -164,18 +164,18 @@ const HomePage = ({ onStart }: { onStart: () => void }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="max-w-6xl mx-auto text-center py-20 px-6"
+    className="max-w-2xl lg:max-w-6xl mx-auto text-center py-8 sm:py-12 lg:py-20 px-4 sm:px-6"
   >
-    <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-light mb-12 shadow-[0_0_20px_rgba(14,165,233,0.1)]">
-      <Sparkles className="w-4 h-4 animate-pulse" />
-      <span className="text-xs font-black uppercase tracking-[0.2em]">Next-Gen AI DevOps</span>
+    <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-light mb-6 sm:mb-12 shadow-[0_0_20px_rgba(14,165,233,0.1)]">
+      <Sparkles className="w-3 sm:w-4 h-3 sm:h-4 animate-pulse" />
+      <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em]">Next-Gen AI DevOps</span>
     </div>
-    <h1 className="text-7xl md:text-9xl font-black tracking-tighter mb-8 leading-[0.9] text-white">
+    <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tighter mb-6 sm:mb-8 leading-[0.9] text-white">
       INTELLIGENT <br />
       <span className="gradient-text">BUILD & RELEASE</span> <br />
       MANAGER
     </h1>
-    <p className="text-2xl text-brand-dim mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
+    <p className="text-base sm:text-lg lg:text-2xl text-brand-dim mb-8 sm:mb-16 max-w-2xl lg:max-w-3xl mx-auto leading-relaxed font-medium">
       AI-powered code generation validation built in one <span className="text-white border-b-2 border-brand-primary/50">intelligent pipeline</span>. 
       Automate your workflow from prompt to production-ready release.
     </p>
@@ -217,31 +217,31 @@ const GeneratorPage = ({ onGenerate }: { onGenerate: (prompt: string, lang: Lang
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="max-w-3xl mx-auto py-12 px-6"
+      className="max-w-2xl lg:max-w-3xl mx-auto py-6 sm:py-12 px-4 sm:px-6"
     >
-      <div className="glass-panel p-10 relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/10 blur-[100px] rounded-full pointer-events-none" />
-        <div className="flex items-center justify-between mb-10 border-b border-white/5 pb-6">
+      <div className="glass-panel p-6 sm:p-10 relative">
+        <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-brand-primary/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10 border-b border-white/5 pb-4 sm:pb-6 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-brand-primary to-brand-light rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20">
               <Cpu className="w-5 h-5 text-white" />
             </div>
-            <span className="text-[13px] uppercase tracking-[2px] gradient-text font-black">Step 1: Configuration</span>
+            <span className="text-[11px] sm:text-[13px] uppercase tracking-[1px] sm:tracking-[2px] gradient-text font-black">Step 1: Configuration</span>
           </div>
-          <span className="text-[10px] text-brand-dim uppercase tracking-[0.2em] font-black opacity-50">Production-Ready</span>
+          <span className="text-[9px] sm:text-[10px] text-brand-dim uppercase tracking-[0.1em] sm:tracking-[0.2em] font-black opacity-50">Production-Ready</span>
         </div>
 
-        <div className="space-y-10">
+        <div className="space-y-6 sm:space-y-10">
           <div>
-            <label className="block text-[11px] font-black text-brand-dim uppercase tracking-[0.2em] mb-4">Select Language</label>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+            <label className="block text-[10px] sm:text-[11px] font-black text-brand-dim uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-3 sm:mb-4">Select Language</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
               {languages.map((l) => (
                 <button
                   key={l}
                   onClick={() => setLang(l)}
-                  className={`px-4 py-3 rounded-xl text-[11px] font-black transition-all text-center border uppercase tracking-wider ${
+                  className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-black transition-all text-center border uppercase tracking-wider ${
                     lang === l 
-                      ? 'bg-gradient-to-r from-brand-primary to-brand-light text-white border-transparent shadow-xl shadow-brand-primary/30 scale-105' 
+                      ? 'bg-gradient-to-r from-brand-primary to-brand-light text-white border-transparent shadow-xl shadow-brand-primary/30 scale-100 sm:scale-105' 
                       : 'bg-white/5 text-brand-dim border-white/10 hover:bg-white/10'
                   }`}
                 >
@@ -252,14 +252,14 @@ const GeneratorPage = ({ onGenerate }: { onGenerate: (prompt: string, lang: Lang
           </div>
 
           <div>
-            <label className="block text-[11px] font-black text-brand-dim uppercase tracking-[0.2em] mb-4">Neural Prompt</label>
+            <label className="block text-[10px] sm:text-[11px] font-black text-brand-dim uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-3 sm:mb-4">Neural Prompt</label>
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary/20 to-brand-light/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe your architectural vision..."
-                className="input-field min-h-[160px] resize-none text-base relative z-10 bg-brand-deep/50 focus:bg-brand-deep/80 transition-all"
+                className="input-field min-h-[120px] sm:min-h-[160px] resize-none text-sm sm:text-base relative z-10 bg-brand-deep/50 focus:bg-brand-deep/80 transition-all"
               />
             </div>
           </div>
@@ -267,9 +267,9 @@ const GeneratorPage = ({ onGenerate }: { onGenerate: (prompt: string, lang: Lang
           <button 
             disabled={!prompt}
             onClick={() => onGenerate(prompt, lang)}
-            className="w-full btn-primary text-2xl py-6 flex items-center justify-center gap-4 disabled:opacity-20 disabled:cursor-not-allowed uppercase font-black tracking-tighter group"
+            className="w-full btn-primary text-lg sm:text-2xl py-4 sm:py-6 flex items-center justify-center gap-3 sm:gap-4 disabled:opacity-20 disabled:cursor-not-allowed uppercase font-black tracking-tighter group"
           >
-            GENERATE PRODUCTION CODE <Sparkles className="w-7 h-7 group-hover:rotate-12 transition-transform" />
+            GENERATE <span className="hidden sm:inline">PRODUCTION CODE</span> <Sparkles className="w-5 sm:w-7 h-5 sm:h-7 group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       </div>
@@ -307,32 +307,32 @@ const BuildPage = ({
   ];
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="max-w-2xl lg:max-w-6xl mx-auto py-6 sm:py-8 px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="lg:col-span-2 space-y-4 sm:space-y-6">
         <div className="glass-panel flex flex-col overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-            <span className="text-[12px] uppercase tracking-[1px] text-brand-light font-semibold">Step 2: Build & Validation</span>
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <span className="text-[11px] sm:text-[12px] uppercase tracking-[0.5px] sm:tracking-[1px] text-brand-light font-semibold">Step 2: Build & Validation</span>
             <div className="flex items-center gap-2">
               {isBuilding ? (
-                <span className="flex items-center gap-2 text-brand-success text-[10px] font-bold">
+                <span className="flex items-center gap-2 text-brand-success text-[9px] sm:text-[10px] font-bold">
                   <div className="w-2 h-2 rounded-full bg-brand-success animate-pulse" /> RUNNING
                 </span>
               ) : logs.length > 0 ? (
-                <span className="flex items-center gap-2 text-brand-success text-[10px] font-bold">
+                <span className="flex items-center gap-2 text-brand-success text-[9px] sm:text-[10px] font-bold">
                   <div className="w-2 h-2 rounded-full bg-brand-success" /> COMPLETED
                 </span>
               ) : (
-                <button onClick={onRunBuild} className="text-[10px] font-bold text-brand-light hover:text-white transition-colors flex items-center gap-1">
+                <button onClick={onRunBuild} className="text-[9px] sm:text-[10px] font-bold text-brand-light hover:text-white transition-colors flex items-center gap-1">
                   <Play className="w-3 h-3" /> START BUILD
                 </button>
               )}
             </div>
           </div>
           
-          <div className="bg-black/40 m-4 p-4 font-mono text-[11px] h-[350px] overflow-y-auto rounded-xl leading-relaxed border border-white/5">
+          <div className="bg-black/40 m-3 sm:m-4 p-3 sm:p-4 font-mono text-[9px] sm:text-[11px] h-[250px] sm:h-[350px] overflow-y-auto rounded-xl leading-relaxed border border-white/5">
             {logs.map((log, i) => (
-              <div key={i} className="mb-1 flex gap-3">
-                <span className="text-white/20 shrink-0">[{log.timestamp}]</span>
+              <div key={i} className="mb-1 flex gap-2 sm:gap-3">
+                <span className="text-white/20 shrink-0 text-[8px] sm:text-[10px]">[{log.timestamp}]</span>
                 <span className={
                   log.type === 'error' ? 'text-red-400' :
                   log.type === 'success' ? 'text-brand-success' :
@@ -352,23 +352,23 @@ const BuildPage = ({
         </div>
 
         <div className="glass-panel overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/5">
-            <span className="text-[12px] uppercase tracking-[1px] text-brand-light font-semibold">Generated Source Code ({project.language})</span>
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/5">
+            <span className="text-[11px] sm:text-[12px] uppercase tracking-[0.5px] sm:tracking-[1px] text-brand-light font-semibold">Generated Source Code ({project.language})</span>
           </div>
-          <pre className="bg-black/40 m-4 p-4 font-mono text-[11px] overflow-x-auto rounded-xl max-h-[400px] text-brand-light/80 border border-white/5">
+          <pre className="bg-black/40 m-3 sm:m-4 p-3 sm:p-4 font-mono text-[9px] sm:text-[11px] overflow-x-auto rounded-xl max-h-[300px] sm:max-h-[400px] text-brand-light/80 border border-white/5 whitespace-pre-wrap break-words">
             <code>{project.code}</code>
           </pre>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="glass-panel p-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/10 blur-[60px] rounded-full pointer-events-none" />
-          <div className="flex items-center justify-between mb-8">
-            <span className="text-[13px] uppercase tracking-[2px] gradient-text font-black">Build Accuracy</span>
-            <span className="text-4xl font-black gradient-text">{finalAccuracy}%</span>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="glass-panel p-6 sm:p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-brand-primary/10 blur-[60px] rounded-full pointer-events-none" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-3">
+            <span className="text-[12px] sm:text-[13px] uppercase tracking-[1px] sm:tracking-[2px] gradient-text font-black">Build Accuracy</span>
+            <span className="text-3xl sm:text-4xl font-black gradient-text">{finalAccuracy}%</span>
           </div>
-          <div className="h-[180px] w-full">
+          <div className="h-[200px] sm:h-[300px] w-full">
            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={accuracyData}>
                 <defs>
@@ -387,7 +387,7 @@ const BuildPage = ({
                     backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(125, 211, 252, 0.2)', 
                     borderRadius: '12px', 
-                    fontSize: '11px', 
+                    fontSize: '10px', 
                     fontWeight: '900', 
                     boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                     textTransform: 'uppercase',
@@ -997,19 +997,19 @@ export default function App() {
             {/* Header */}
             <header className="sticky top-0 z-40 bg-brand-deep/60 backdrop-blur-2xl border-b border-white/5">
               <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 via-transparent to-brand-light/5 pointer-events-none" />
-              <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setView('home')}>
-                  <div className="w-12 h-12 bg-gradient-to-br from-brand-primary to-brand-light rounded-2xl flex items-center justify-center shadow-xl shadow-brand-primary/20 group-hover:rotate-12 transition-transform duration-500">
-                    <Rocket className="w-7 h-7 text-white" />
+              <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-2 sm:gap-4 cursor-pointer group" onClick={() => setView('home')}>
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-br from-brand-primary to-brand-light rounded-2xl flex items-center justify-center shadow-xl shadow-brand-primary/20 group-hover:rotate-12 transition-transform duration-500 shrink-0">
+                    <Rocket className="w-5 sm:w-7 h-5 sm:h-7 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <h1 className="text-2xl font-black tracking-tighter text-white leading-none uppercase">
+                    <h1 className="text-lg sm:text-2xl font-black tracking-tighter text-white leading-none uppercase">
                       INTELLIGENT <span className="text-brand-primary">BUILD</span>
                     </h1>
-                    <span className="text-[9px] text-brand-dim font-black uppercase tracking-[0.4em] mt-1.5">Neural DevOps Pipeline</span>
+                    <span className="text-[7px] sm:text-[9px] text-brand-dim font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] mt-0.5 sm:mt-1.5">Neural DevOps Pipeline</span>
                   </div>
                 </div>
-                <nav className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-brand-dim">
+                <nav className="hidden lg:flex items-center gap-6 sm:gap-10 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-brand-dim">
                   {['generator', 'build', 'release', 'library'].map((v) => (
                     <button 
                       key={v}
@@ -1027,14 +1027,14 @@ export default function App() {
                     </button>
                   ))}
                 </nav>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 sm:gap-6">
                   <button 
                     onClick={toggleDarkMode}
-                    className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-brand-dim hover:text-white group"
+                    className="p-2 sm:p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-brand-dim hover:text-white group"
                   >
-                    {isDarkMode ? <Sun className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-5 h-5 group-hover:-rotate-12 transition-transform duration-500" />}
+                    {isDarkMode ? <Sun className="w-4 sm:w-5 h-4 sm:h-5 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-4 sm:w-5 h-4 sm:h-5 group-hover:-rotate-12 transition-transform duration-500" />}
                   </button>
-                  <div className="hidden sm:flex items-center gap-3 px-5 py-2.5 bg-gradient-to-r from-brand-primary/10 to-brand-light/5 border border-brand-primary/20 rounded-2xl text-brand-primary font-black text-[9px] uppercase tracking-[0.2em] shadow-inner">
+                  <div className="hidden sm:flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 bg-gradient-to-r from-brand-primary/10 to-brand-light/5 border border-brand-primary/20 rounded-2xl text-brand-primary font-black text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-inner">
                     <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse shadow-[0_0_10px_rgba(14,165,233,0.8)]" />
                     System Active
                   </div>
@@ -1043,7 +1043,7 @@ export default function App() {
             </header>
 
             {/* Content */}
-            <main className="relative z-10 pt-8 pb-20">
+            <main className="relative z-10 pt-6 sm:pt-8 pb-12 sm:pb-20">
               {error ? (
                 <div className="py-20">
                   <ErrorDisplay message={error} onRetry={() => setError(null)} />

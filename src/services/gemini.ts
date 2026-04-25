@@ -1,8 +1,24 @@
 export async function generateProject(prompt: string, language: string) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+    // Try multiple ways to get the API key
+    let apiKey = process.env.GEMINI_API_KEY;
+    
+    // If not available, try import.meta.env
+    if (!apiKey) {
+      apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    }
+    if (!apiKey) {
+      apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    }
+    
+    console.log("🔍 API Key Check:");
+    console.log("  process.env.GEMINI_API_KEY:", process.env.GEMINI_API_KEY ? "✓ Found" : "✗ Not found");
+    console.log("  import.meta.env.VITE_GROQ_API_KEY:", import.meta.env.VITE_GROQ_API_KEY ? "✓ Found" : "✗ Not found");
+    console.log("  import.meta.env.VITE_GEMINI_API_KEY:", import.meta.env.VITE_GEMINI_API_KEY ? "✓ Found" : "✗ Not found");
+    console.log("  Final API Key:", apiKey ? `${apiKey.substring(0, 15)}...` : "❌ NOT FOUND");
+    console.log("  All env vars:", import.meta.env);
 
-    if (!apiKey) throw new Error("API key missing");
+    if (!apiKey) throw new Error("API key missing - check console output");
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -47,37 +63,74 @@ STRICT RULES:
       }),
     });
 
+    console.log("📡 API Response Status:", response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ API Error Response:", errorText);
+      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
     const data = await response.json();
+    console.log("✅ API Response Data:", data);
     let text = data.choices?.[0]?.message?.content || data.choices?.[0]?.text || "";
+    
+    console.log("📝 Raw Response Text (first 500 chars):", text.substring(0, 500));
 
     // remove markdown fences if any
     text = text.replace(/```json|```/g, "").trim();
 
     function extractJSON(text: string) {
-      const match = text.match(/\{[\s\S]*\}/m);
-      if (match) {
-        try {
-          return JSON.parse(match[0]);
-        } catch {}
-      }
+      // Try to find the first complete JSON object
+      let braceCount = 0;
+      let inString = false;
+      let escape = false;
+      let start = -1;
 
-      let depth = 0;
-      let startIndex = -1;
       for (let i = 0; i < text.length; i++) {
-        const chr = text[i];
-        if (chr === '{') {
-          if (startIndex === -1) startIndex = i;
-          depth += 1;
-        } else if (chr === '}') {
-          depth -= 1;
-          if (depth === 0 && startIndex !== -1) {
-            const slice = text.slice(startIndex, i + 1);
+        const char = text[i];
+
+        // Handle escape sequences
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (char === '\\') {
+          escape = true;
+          continue;
+        }
+
+        // Handle strings
+        if (char === '"' && !escape) {
+          inString = !inString;
+          continue;
+        }
+
+        // Skip if we're inside a string
+        if (inString) continue;
+
+        // Track braces
+        if (char === '{') {
+          if (braceCount === 0) start = i;
+          braceCount++;
+        } else if (char === '}') {
+          braceCount--;
+          if (braceCount === 0 && start !== -1) {
+            const jsonStr = text.substring(start, i + 1);
             try {
-              return JSON.parse(slice);
-            } catch {}
+              console.log("🔍 Attempting to parse JSON:", jsonStr.substring(0, 100));
+              const parsed = JSON.parse(jsonStr);
+              console.log("✅ JSON parsed successfully");
+              return parsed;
+            } catch (e) {
+              console.error("❌ JSON parse failed:", e);
+              start = -1;
+            }
           }
         }
       }
+      
+      console.warn("⚠️ No valid JSON found in response");
       return null;
     }
 
@@ -85,11 +138,13 @@ STRICT RULES:
 
     try {
       parsed = extractJSON(text);
-    } catch {
+    } catch (err) {
+      console.error("❌ extractJSON error:", err);
       parsed = null;
     }
 
     if (!parsed) {
+      console.warn("❌ JSON parsing failed, returning raw text as code");
       return {
         code: text,
         explanation: "Could not parse structured response",
@@ -101,6 +156,13 @@ STRICT RULES:
 
     const rawAccuracy = Number(parsed.accuracy);
     const accuracy = Number.isFinite(rawAccuracy) && rawAccuracy >= 40 && rawAccuracy <= 100 ? rawAccuracy : 90;
+
+    console.log("📊 Parsed result:", {
+      codeLength: parsed.code?.length || 0,
+      explanation: parsed.explanation?.substring(0, 50),
+      suggestions: parsed.suggestions?.substring(0, 50),
+      accuracy
+    });
 
     return {
       code: parsed.code || "",
