@@ -1,8 +1,15 @@
-# 🚀 Intelligent Build & Release Manager
+<h1 align="center">🤖 Intelligent Build & Release Manager</h1>
 
-An AI-powered web application that automates frontend application development using Large Language Models (LLMs). The platform generates production-ready HTML applications from user prompts, provides AI-powered code explanations, visual previews, build management, and release generation to significantly improve developer productivity.
+<h3 align="center">
+AI-Powered Frontend Application Generator & Release Management Platform
+</h3>
 
----
+<p align="center">
+Generate HTML applications • AI Code Explanation • Build Management • Release Generation
+</p>
+
+<hr>
+
 
 # 📖 Project Overview
 
