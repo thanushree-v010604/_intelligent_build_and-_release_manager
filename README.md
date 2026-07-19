@@ -1,55 +1,61 @@
-# 🤖 Intelligent Build & Release Manager
+# 🚀 Intelligent Build & Release Manager
 
-An AI-powered web application that generates production-ready HTML applications from natural language prompts. The application leverages the **GROQ API** and **Llama 3.1** model to automate frontend development through a modern and responsive interface.
-
----
-
-## 📖 Project Overview
-
-Building web applications manually can be repetitive and time-consuming. This project simplifies the development workflow by allowing users to describe their application requirements in plain English. The AI processes the prompt and instantly generates production-ready HTML code.
-
-The project demonstrates the integration of Artificial Intelligence with modern web development technologies to accelerate application development.
+An AI-powered web application that automates frontend application development using Large Language Models (LLMs). The platform generates production-ready HTML applications from user prompts, provides AI-powered code explanations, visual previews, build management, and release generation to significantly improve developer productivity.
 
 ---
 
-## ✨ Features
+# 📖 Project Overview
 
-- 🤖 AI-powered HTML generation
-- 💬 Prompt-based application creation
-- ⚡ Fast response using GROQ API
-- 🎨 Modern responsive interface
-- 📄 HTML code generation
-- 📚 AI-powered code explanation
-- 🛠️ Build & Release Management
-- 📦 Project Library
-- 🚀 Release Output Preview
+Developing frontend applications manually can be repetitive and time-consuming. This project simplifies the entire development workflow by leveraging Artificial Intelligence to generate complete HTML applications from natural language prompts.
+
+The application integrates Large Language Models (LLMs) with modern web technologies to automate code generation, explain generated code, provide intelligent suggestions, preview the application visually, and manage the complete build and release lifecycle.
 
 ---
 
-## 🛠️ Technologies Used
+# ✨ Features
+
+- 🤖 AI-powered HTML Generation
+- 💬 Prompt-based Application Creation
+- ⚡ Fast Response using GROQ API
+- 📖 AI Code Explanation
+- 💡 Intelligent AI Suggestions
+- 🎨 Live Visual Preview
+- 🏗️ Build Management
+- 📦 Release Generation
+- 📚 Project Library
+- 🌐 Responsive Modern UI
+
+---
+
+# 🛠️ Technologies Used
 
 - ⚛️ React
-- 📘 TypeScript
+- 🔷 TypeScript
 - ⚡ Vite
 - 🎨 Tailwind CSS
 - 🤖 GROQ API
-- 🧠 Llama 3.1
-- 🌐 Express.js
-- 📊 Recharts
+- 🧠 Large Language Models (LLMs)
+- 📦 npm
+- 🌐 HTML5
+- 🎯 CSS3
+- 📜 JavaScript (ES6)
 
 ---
 
-## ⚡ How It Works
+# ⚙️ How It Works
 
-1. 💬 Enter your application requirements.
-2. 🤖 The prompt is sent to the GROQ AI model.
-3. ⚡ AI generates production-ready HTML code.
-4. 📚 AI provides detailed code explanations.
-5. 🚀 Build and export the generated application.
+1. 💬 Enter your application idea.
+2. 🤖 AI processes the prompt.
+3. 📝 HTML code is generated.
+4. 📖 AI explains the generated code.
+5. 💡 Suggestions are provided.
+6. 🎨 Live preview is displayed.
+7. 🏗️ Build the application.
+8. 📦 Generate the final release package.
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```text
 src/
@@ -57,36 +63,34 @@ src/
 ├── pages
 ├── services
 ├── hooks
-├── utils
-├── App.tsx
-└── main.tsx
+├── lib
+├── assets
+└── utils
 ```
 
 ---
 
-## 🚀 Installation
+# 🚀 Installation
 
-1. Clone the repository
+### Clone the Repository
 
 ```bash
-git clone https://github.com/thanushree-v010604/intelligent_build_and_release_manager.git
+git clone https://github.com/thanushree-v010604/_intelligent_build_and_release_manager.git
 ```
 
-2. Open the project in **Visual Studio Code**.
+### Navigate to the Project
 
-3. Install dependencies
+```bash
+cd _intelligent_build_and_release_manager
+```
+
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-4. Create a `.env` file
-
-```env
-VITE_GROQ_API_KEY=your_api_key_here
-```
-
-5. Start the development server
+### Start Development Server
 
 ```bash
 npm run dev
@@ -94,31 +98,18 @@ npm run dev
 
 ---
 
-## 🚧 Future Improvements
+# 🎯 Purpose
 
-- 🌙 Dark / Light Theme
-- 🤖 Multiple AI Models
-- 📦 ZIP Project Export
-- ☁️ Cloud Storage
-- 👥 User Authentication
-- 📱 Mobile Responsive Support
-- ⚛️ React & Next.js Project Generation
-- 🧠 Multi-file Project Generation
+The primary objective of this project is to simplify frontend application development using Artificial Intelligence. It demonstrates the integration of Large Language Models (LLMs) with modern web technologies to automate HTML generation, explain generated code, provide intelligent suggestions, and improve overall developer productivity.
 
 ---
 
-## 🎯 Purpose
-
-The main objective of this project is to simplify frontend application development using Artificial Intelligence. It demonstrates the integration of Large Language Models (LLMs) with modern web technologies to automate HTML generation and improve developer productivity.
-
----
-
-# 💻 Application Screenshots
+# 💻 Website Screenshots
 
 ## 🚀 Splash Screen
 
 <p align="center">
-  <img src="website-screenshots/splash.jpg" width="900">
+<img src="./Website%20screenshots/splash.jpg" width="900"/>
 </p>
 
 <p align="center">
@@ -130,7 +121,7 @@ Application loading screen while initializing AI services.
 ## 🏠 Home Dashboard
 
 <p align="center">
-  <img src="website-screenshots/home.jpg" width="900">
+<img src="./Website%20screenshots/home.jpg" width="900"/>
 </p>
 
 <p align="center">
@@ -142,7 +133,7 @@ Main dashboard where users describe their application requirements.
 ## 🤖 AI Code Generation
 
 <p align="center">
-  <img src="website-screenshots/generate.jpg" width="900">
+<img src="./Website%20screenshots/generate.jpg" width="900"/>
 </p>
 
 <p align="center">
@@ -151,26 +142,26 @@ Generate production-ready HTML applications using Artificial Intelligence.
 
 ---
 
-## 🧠 AI Suggestions
+## 💡 AI Suggestions
 
 <p align="center">
-  <img src="website-screenshots/ai suggestion.jpg" width="900">
+<img src="./Website%20screenshots/ai%20suggestion.jpg" width="900"/>
 </p>
 
 <p align="center">
-Receive intelligent suggestions and improvements generated by the AI.
+Receive intelligent suggestions and recommendations generated by AI.
 </p>
 
 ---
 
-## 📚 Code Explanation
+## 📖 Code Explanation
 
 <p align="center">
-  <img src="website-screenshots/code explaination.jpg" width="900">
+<img src="./Website%20screenshots/code%20explaination.jpg" width="900"/>
 </p>
 
 <p align="center">
-Understand the generated code with detailed AI-powered explanations.
+Understand the generated code through AI-powered explanations.
 </p>
 
 ---
@@ -178,64 +169,64 @@ Understand the generated code with detailed AI-powered explanations.
 ## 🎨 Visual Preview
 
 <p align="center">
-  <img src="website-screenshots/visual.jpg" width="900">
+<img src="./Website%20screenshots/visual.jpg" width="900"/>
 </p>
 
 <p align="center">
-Preview the generated application's user interface before exporting.
+Preview the generated application before downloading.
 </p>
 
 ---
 
-## 🛠️ Build Process
+## 🏗️ Build Manager
 
 <p align="center">
-  <img src="website-screenshots/build.jpg" width="900">
+<img src="./Website%20screenshots/build.jpg" width="900"/>
 </p>
 
 <p align="center">
-Monitor the build process before deployment.
-</p>
-
----
-
-## 📦 Project Library
-
-<p align="center">
-  <img src="website-screenshots/library.jpg" width="900">
-</p>
-
-<p align="center">
-Access previously generated projects from the project library.
+Manage application builds and monitor build progress.
 </p>
 
 ---
 
-## 🚀 Release Manager
+## 📚 Project Library
 
 <p align="center">
-  <img src="website-screenshots/release.jpg" width="900">
+<img src="./Website%20screenshots/library.jpg" width="900"/>
 </p>
 
 <p align="center">
-Manage build releases and deployment workflow.
-</p>
-
----
-
-## ✅ Release Output
-
-<p align="center">
-  <img src="website-screenshots/release output.jpg" width="900">
-</p>
-
-<p align="center">
-Final generated application ready for deployment.
+Access and manage previously generated applications.
 </p>
 
 ---
 
-## 👩‍💻 Author
+## 📦 Release Manager
+
+<p align="center">
+<img src="./Website%20screenshots/release.jpg" width="900"/>
+</p>
+
+<p align="center">
+Generate production-ready release packages.
+</p>
+
+---
+
+## 🚀 Release Output
+
+<p align="center">
+<img src="./Website%20screenshots/release%20output.jpg" width="900"/>
+</p>
+
+<p align="center">
+Final release output ready for deployment.
+</p>
+
+---
+
+# 👩‍💻 Author
 
 **Thanushree V**
 🔗 GitHub: https://github.com/thanushree-v010604
